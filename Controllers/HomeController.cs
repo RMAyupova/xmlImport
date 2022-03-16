@@ -15,12 +15,18 @@ namespace XmlImport.Controllers
         //Метод с WebClient
         public string DownloadFile()
         {
-            var url = $"https://www.sec.gov/Archives/edgar/daily-index/2022/QTR1/sitemap.20220107.xml";
-            var savePath = $"C:\\post\\postt.xml";
+            var qtr = "QTR1";
+            var year = "2022";
+            var file = "master.20220303.idx";
+            string path = $"C:\\XML\\daily-index\\{year}\\{qtr}"; //путь к месту создания
+            var url = $"https://www.sec.gov/Archives/edgar/daily-index/{year}/{qtr}/{file}";
 
+            //1.сделать переменным файл xml
+            //2.Создать переменную fullpath (path+файл из п.1) и подставить его в client.DownloadFile(url, path) вместо path
+            var fullpath = $"{path}\\{file}";
             var client = GetWebClient();   //
-            CreateDirectory();
-            //client.DownloadFile(url, savePath);
+            CreateDirectory(path);
+            client.DownloadFile(url, fullpath);
             return "Получилось";
 
         }
@@ -38,13 +44,11 @@ namespace XmlImport.Controllers
 
         }
 
-        /// <summary>
-        /// создание Папки на диске
+        /// <su Папки на диске
         /// </summary>
-        private void CreateDirectory()
+        private void CreateDirectory(string path)
         {
-            var qtr = "QTR1";
-            string path = $"C:\\XML\\daily-index\\2022\\QTR1"; //путь к месту создания
+            
             DirectoryInfo dirInfo = new DirectoryInfo(path);
             if (!dirInfo.Exists) //определяет, существует ли каталог
             {
