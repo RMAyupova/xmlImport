@@ -17,7 +17,8 @@ namespace XmlImport.Controllers
         {
             var year = "2022";
             List<string> FileNameList = new List<string>(); //созд пустой список
-            List<string> FileFolderList = new List<string>();            
+            List<string> FileFolderList = new List<string>();
+            List<Master> MasterList = new List<Master>();
             var client = GetWebClient();   
 
             var urlPathFolder = $"https://www.sec.gov/Archives/edgar/daily-index/{year}/";
@@ -38,6 +39,7 @@ namespace XmlImport.Controllers
                     var compPath = $"{localPath}\\{fnm}";//C:\DailyIndex\2022\QTR1\master01022022.idx
                     var webPath = urlPathFolderQtr + fnm;//путь на сайте
                     client.DownloadFile(webPath, compPath);//скачиваем файл откуда/куда
+                    ParsFile(compPath, MasterList);
                     Console.WriteLine($"Файл {fnm} скачен");
                 }
             }
@@ -48,6 +50,30 @@ namespace XmlImport.Controllers
             return "Получилось";
            
         }
+
+        /// <summary>
+        /// Этот метод парсит файл с компа
+        /// </summary>
+        private void ParsFile(string path, List<Master> list)    //метод
+        {
+            using (StreamReader reader = new StreamReader(path)) //конструктор ---откытие потока на чтение
+            {
+                string sub = "------"; //разделитель для урезания шапки
+                string text = reader.ReadToEnd();  //чтение файла до конца
+                int indexOfSubString = text.LastIndexOf(sub);
+
+                string[] txtRay = text.Substring(indexOfSubString).Replace(sub, "").Trim().Split(new char[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string s in txtRay)
+                {
+                    string[] lineArray = s.Split("|");
+                    list.Add(new Master(lineArray[0], lineArray[1], lineArray[2], lineArray[3],lineArray[4]));
+                } 
+                
+            }
+            
+        }
+
+
         /// <summary>
         /// получение метода WebClient
         /// </summary>
