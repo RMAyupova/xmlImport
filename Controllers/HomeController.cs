@@ -38,13 +38,36 @@ namespace XmlImport.Controllers
                     client = GetWebClient();//заново получ клиент чтоб сервер не скинул
                     var compPath = $"{localPath}\\{fnm}";//C:\DailyIndex\2022\QTR1\master01022022.idx
                     var webPath = urlPathFolderQtr + fnm;//путь на сайте
-                    client.DownloadFile(webPath, compPath);//скачиваем файл откуда/куда
+                    if (!System.IO.File.Exists(compPath))//проверка на сущ-е файла
+                    {
+                        client.DownloadFile(webPath, compPath);//скачиваем файл откуда/куда
+                        Console.WriteLine($"Файл {fnm} скачан");
+                    }
                     ParsFile(compPath, MasterList);
-                    Console.WriteLine($"Файл {fnm} скачен");
+                    Console.WriteLine($"Файл {fnm} обработан");
                 }
             }
 
+            using (ApplicationDbContext db = new ApplicationDbContext()) //добавление в базу
+            {
+                var masters = db.Masters.ToList();//достает все записи из БД и ложит в список
 
+                foreach (var masterInfo in MasterList)
+                {
+                    //проверка на существование записи
+                    if (masters.FirstOrDefault(x=>x.CIK == masterInfo.CIK && x.CompanyName == masterInfo.CompanyName
+                    && x.DateFiled == masterInfo.DateFiled && x.FileName == masterInfo.FileName && x.FormType == masterInfo.FormType) == null)
+                    {
+                        db.Masters.Add(masterInfo);
+                        Console.WriteLine($"Запись {masterInfo.CIK} {masterInfo.CompanyName} {masterInfo.DateFiled} {masterInfo.FileName} добавлен в БД");
+                        db.SaveChanges();
+                    }
+                }
+                
+
+            }
+
+            Console.WriteLine("Все файлы добавлены");
 
 
             return "Получилось";
